@@ -72,4 +72,3 @@ def new_comment(id):
     db.session.add(comment)
     db.session.commit()
     return redirect(url_for('api.get_comments', id=comment.post_id))
-
