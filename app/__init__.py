@@ -40,8 +40,8 @@ def create_app(config_class=Config):
     bootstrap.init_app(app)
     moment.init_app(app)
 
-    from app.errors import errors as errors_bp
-    app.register_blueprint(errors_bp)
+    # from app.errors import errors as errors_bp
+    # app.register_blueprint(errors_bp)
 
     from app.auth import auth as auth_bp
     app.register_blueprint(auth_bp)
