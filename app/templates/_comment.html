@@ -1,0 +1,17 @@
+<table style="margin:0 auto; width: 80%" class="table">
+    <tr>
+        <td width="60px" rowspan="2">
+            <a href="{{ url_for('main.user', username=current_user.username) }}">
+                <img style="border-radius:50%" src="{{ current_user.avatar(36) }}" alt=""/>
+            </a>
+        </td>
+        <td>
+            <a style="font-size:15px" href="{{ url_for('main.user', username=current_user.username) }}">
+                {{ current_user.username }}
+            </a>
+            <p style="display: inline-block; color: gray; font-size:13px">{{ moment(comment.timestamp).calendar() }}</p>
+            <br>
+            {{ comment.body }}
+        </td>
+    </tr>
+</table>
