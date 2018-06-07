@@ -3,7 +3,6 @@ from app import db
 from flask import jsonify, request, url_for
 from app.models import User, Post
 from app.api.errors import bad_request
-import json
 
 
 @api.route('/users/<int:id>', methods=['GET'])
@@ -44,9 +43,7 @@ def get_followed(id):
 def create_user():
     print('--------1--------')
     # Flask提供request.get_json()方法从请求中提取JSON并将其作为Python结构返回
-    s_data = request.get_data() or {}
-    print(s_data)
-    data = json.loads(s_data)
+    data = request.get_json() or {}
     print(data)
     if 'username' not in data or 'email' not in data or 'password' not in data:
         return bad_request('must include username, email and password fields')
@@ -67,8 +64,7 @@ def create_user():
 @api.route('/users/<int:id>', methods=['PUT'])
 def update_user(id):
     user = User.query.get_or_404(id)
-    s_data = request.get_data() or {}
-    data = json.loads(s_data)
+    data = request.get_json() or {}
     if 'username' in data and data['username'] != user.username and User.query.filter_by(username=data['username']).first():
         return bad_request('此用户名已存在')
     if 'email' in data and data['email'] != user.email and User.query.filter_by(email=data['email']).first():
