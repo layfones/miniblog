@@ -67,7 +67,8 @@ def create_user():
 @api.route('/users/<int:id>', methods=['PUT'])
 def update_user(id):
     user = User.query.get_or_404(id)
-    data = request.get_json() or {}
+    s_data = request.get_data() or {}
+    data = json.loads(s_data)
     if 'username' in data and data['username'] != user.username and User.query.filter_by(username=data['username']).first():
         return bad_request('此用户名已存在')
     if 'email' in data and data['email'] != user.email and User.query.filter_by(email=data['email']).first():
