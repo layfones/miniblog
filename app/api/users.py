@@ -3,8 +3,31 @@ from app import db
 from flask import jsonify, request, url_for
 from app.models import User, Post
 from app.api.errors import bad_request
+from flask_login import login_user
 
 
+# 用户登录校验
+@api.route('/authenticate', methods=['POST'])
+def authenticate():
+    data = request.get_json() or {}
+    if 'username' not in data:
+        return bad_request('请输入用户名')
+    if 'password' not in data:
+        return bad_request('请输入用户名')
+    user = User.query.filter_by(username=data['username']).first()
+    if user is None or not user.check_password(data['password']):
+        return bad_request('用户名或密码错误!')
+    login_user(user)
+    user.from_dict(data, new_user=False)
+    db.session.add(user)
+    db.session.commit()
+    response = jsonify(user.to_dict())
+    response.status_code = 201
+    response.headers['Location'] = url_for('api.get_user', id=user.id)
+    return response
+
+
+# 根据 id 取得用户公开信息
 @api.route('/users/<int:id>', methods=['GET'])
 def get_user(id):
     print('---------that----------')
@@ -39,6 +62,7 @@ def get_followed(id):
     return jsonify(data)
 
 
+# 创建一个新用户
 @api.route('/users', methods=['POST'])
 def create_user():
     print('--------1--------')
