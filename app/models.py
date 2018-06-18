@@ -48,6 +48,9 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
                                secondaryjoin=(followers.c.followed_id == id),
                                backref=db.backref('followers', lazy='dynamic'), lazy='dynamic')
     comments = db.relationship('Comment', backref='author', lazy='dynamic')
+    messages_sent = db.relationship('Message', foreign_keys='Message.sender_id', backref='author', lazy='dynamic')
+    messages_received = db.relationship('Message', foreign_keys='Message.recipient_id', backref='recipient', lazy='dynamic')
+    last_message_read_time = db.Column(db.DateTime)
 
     def avatar(self, size):
         digest = md5(self.email.lower().encode('utf-8')).hexdigest()
@@ -79,6 +82,10 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
         followed = Post.query.join(followers, (followers.c.followed_id == Post.user_id)).filter(followers.c.follower_id == self.id)
         own = Post.query.filter_by(user_id=self.id)
         return followed.union(own).order_by(Post.timestamp.desc())
+
+    def new_messages(self):
+        last_read_time = self.last_message_read_time or datetime(1900, 1, 1)
+        return Message.query.filter_by(recipient=self).filter(Message.timestamp > last_read_time).count()
 
     # to_dict()方法将用户对象转换为Python dict表示
     def to_dict(self, include_email=False):
@@ -179,6 +186,17 @@ class Comment(db.Model):
         for field in ['body', 'author_id', 'post_id']:
             if field in data:
                 setattr(self, field, data[field])
+
+
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    body = db.Column(db.String(1400))
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+
+    def __repr__(self):
+        return '<Message {}>'.format(self.body)
 
 
 @login.user_loader

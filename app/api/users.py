@@ -34,6 +34,7 @@ def get_user(id):
     return jsonify(User.query.get_or_404(id).to_dict())
 
 
+# 取得所有用户
 @api.route('/users', methods=['GET'])
 def get_users():
     page = request.args.get('page', 1, type=1)
@@ -62,6 +63,42 @@ def get_followed(id):
     return jsonify(data)
 
 
+# 关注
+@api.route('/users/<username>/follow', methods=['POST'])
+def follow(username):
+    data = request.get_json() or {}
+    current_user = User.query.filter_by(username=data['current_username']).first()
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        return bad_request('此用户不存在')
+    if user == current_user:
+        return bad_request('不能关注自己')
+    current_user.follow(user)
+    db.session.commit()
+    response = jsonify(user.to_dict())
+    response.status_code = 201
+    response.headers['Location'] = url_for('api.get_user', id=user.id)
+    return response
+
+
+# 取消关注
+@api.route('/users/<username>/unfollow', methods=['POST'])
+def unfollow(username):
+    data = request.get_json() or {}
+    current_user = User.query.filter_by(username=data['current_username']).first()
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        return bad_request('此用户不存在')
+    if user == current_user:
+        return bad_request('不能关注自己')
+    current_user.unfollow(user)
+    db.session.commit()
+    response = jsonify(user.to_dict())
+    response.status_code = 201
+    response.headers['Location'] = url_for('api.get_user', id=user.id)
+    return response
+
+
 # 创建一个新用户
 @api.route('/users', methods=['POST'])
 def create_user():
@@ -85,6 +122,7 @@ def create_user():
     return response
 
 
+# 修改用户信息
 @api.route('/users/<int:id>', methods=['PUT'])
 def update_user(id):
     user = User.query.get_or_404(id)

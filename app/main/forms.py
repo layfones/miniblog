@@ -18,3 +18,8 @@ class PostForm(FlaskForm):
 class CommentForm(FlaskForm):
     body = StringField('', validators=[DataRequired()])
     submit = SubmitField('发表')
+
+
+class MessageForm(FlaskForm):
+    message = TextAreaField('私信', validators=[DataRequired(), Length(min=1, max=1400)])
+    submit = SubmitField('发送')

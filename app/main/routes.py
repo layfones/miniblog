@@ -2,9 +2,9 @@ from app.main import main
 from app import db
 from flask import render_template, flash, redirect, url_for, request, current_app
 from werkzeug.urls import url_parse
-from app.main.forms import EditProfileForm, PostForm, CommentForm
+from app.main.forms import EditProfileForm, PostForm, CommentForm, MessageForm
 from flask_login import current_user, login_user, logout_user, login_required
-from app.models import User, Post, Comment
+from app.models import User, Post, Comment, Message
 from datetime import datetime
 
 
@@ -124,4 +124,34 @@ def post(id):
     prev_url = url_for('post.explore', page=comments.prev_num) if comments.has_prev else None
     return render_template('post.html', post=post, form=form, comments=comments.items, next_url=next_url, prev_url=prev_url)
 
+
+@main.route('/send_message/<recipient>', methods=['GET', 'POST'])
+@login_required
+def send_message(recipient):
+    user = User.query.filter_by(username=recipient).first_or_404()
+    form = MessageForm()
+    if form.validate_on_submit():
+        msg = Message(author=current_user, recipient=user, body=form.message.data)
+        db.session.add(msg)
+        db.session.commit()
+        flash('消息已发送')
+        return redirect(url_for('main.user', username=recipient))
+    return render_template('send_message.html', title='发送私信', form=form, recipient=recipient)
+
+
+@main.route('/messages')
+@login_required
+def messages():
+    current_user.last_message_read_time = datetime.utcnow()
+    db.session.commit()
+    page = request.args.get('page', 1, type=int)
+    messages = current_user.messages_received.order_by(
+        Message.timestamp.desc()).paginate(
+            page, current_app.config['POSTS_PER_PAGE'], False)
+    next_url = url_for('main.messages', page=messages.next_num) \
+        if messages.has_next else None
+    prev_url = url_for('main.messages', page=messages.prev_num) \
+        if messages.has_prev else None
+    return render_template('messages.html', messages=messages.items,
+                           next_url=next_url, prev_url=prev_url)
 
