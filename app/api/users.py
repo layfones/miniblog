@@ -63,9 +63,8 @@ def get_followed(id):
     return jsonify(data)
 
 
-# 关注
-@api.route('/users/<username>/follow', methods=['POST'])
-def follow(username):
+@api.route('/users/<username>/is_following', methods=['POST'])
+def is_following(username):
     data = request.get_json() or {}
     current_user = User.query.filter_by(username=data['current_username']).first()
     user = User.query.filter_by(username=username).first()
@@ -73,6 +72,21 @@ def follow(username):
         return bad_request('此用户不存在')
     if user == current_user:
         return bad_request('不能关注自己')
+    if current_user.is_following(user):
+        res = {'is_following': 'true'}
+        response = jsonify(res)
+        return response
+    res = {'is_following': 'false'}
+    response = jsonify(res)
+    return response
+
+
+# 关注
+@api.route('/users/<username>/follow', methods=['POST'])
+def follow(username):
+    data = request.get_json() or {}
+    current_user = User.query.filter_by(username=data['current_username']).first()
+    user = User.query.filter_by(username=username).first()
     current_user.follow(user)
     db.session.commit()
     response = jsonify(user.to_dict())
