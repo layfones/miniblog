@@ -97,6 +97,7 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
             'post_count': self.posts.count(),
             'follower_count': self.followers.count(),
             'followed_count': self.followed.count(),
+            'avatar': self.avatar(128),
             '_links': {
                 'self': url_for('api.get_user', id=self.id),
                 'followers': url_for('api.get_followers', id=self.id),
