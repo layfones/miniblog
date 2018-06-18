@@ -147,6 +147,7 @@ class Post(PaginatedAPIMixin, db.Model):
             'timestamp': self.timestamp,
             'author_id': self.user_id,
             'author_name': get_username(self.user_id),
+            'author_avatar':get_avatar(self.user_id),
             'comments_count': self.comments.count(),
             '_links': {
                 'self': url_for('api.get_post', id=self.id),
