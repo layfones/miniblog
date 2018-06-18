@@ -28,7 +28,7 @@ def get_all_posts():
     print('---------that----------')
     page = request.args.get('page', 1, type=1)
     per_page = min(request.args.get('per_page', 10, type=int), 100)
-    posts = Post.to_collection_dict(Post.query.order_by(Post.timestamp.desc()), page, per_page, 'api.get_posts')
+    posts = Post.to_collection_dict(Post.query.order_by(Post.timestamp.desc()), page, per_page, 'api.get_all_posts')
     return jsonify(posts)
 
 
